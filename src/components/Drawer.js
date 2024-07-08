@@ -1,12 +1,5 @@
 import React, { useState } from "react";
 import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Link,
-  useLocation,
-} from "react-router-dom";
-import {
   Drawer,
   List,
   ListItem,
@@ -15,20 +8,17 @@ import {
   Box,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import MedicalForm from "./pages/MedicalForm";
-import ExportForm from "./pages/ExportForm";
 
 const App = () => {
   return (
-    <Router>
+    <div>
       <Main />
-    </Router>
+    </div>
   );
 };
 
 const Main = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const location = useLocation();
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -41,8 +31,10 @@ const Main = () => {
   };
 
   const menuItems = [
-    { text: "แบบแจ้งค่ารักษาผู้ป่วยนอก", path: "/" },
-    { text: "ส่งออกข้อมูล", path: "/exportform" },
+    { text: "Home", path: "/home" },
+    { text: "Login", path: "/login" },
+    { text: "Item 3", path: "/item3" },
+    { text: "Item 4", path: "/item4" },
   ];
 
   return (
@@ -72,9 +64,8 @@ const Main = () => {
               <ListItem
                 button
                 key={item.text}
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
+                component="a"
+                href={item.path}
                 sx={{
                   "&.Mui-selected": {
                     backgroundColor: "#1976d2",
@@ -92,10 +83,9 @@ const Main = () => {
         </Box>
       </Drawer>
 
-      <Routes>
-        <Route path="/" element={<MedicalForm />} />
-        <Route path="/exportform" element={<ExportForm />} />
-      </Routes>
+      <div>
+        <h2>เนื้อหาหน้าเพจที่จะแสดง</h2>
+      </div>
     </div>
   );
 };
