@@ -163,6 +163,8 @@ function MedicalForm() {
     });
     setStockMaster([]);
     setDoseCodes([]);
+    setSelectedMedication(null);
+    setSelectedDOse(null);
   };
 
   useEffect(() => {
@@ -181,13 +183,15 @@ function MedicalForm() {
     };
     fetchICDOptions();
   }, [desICD.code]);
-
+  const [selectedMedication, setSelectedMedication] = useState(null);
+  const [selectedDOse, setSelectedDOse] = useState(null);
   const handleAddDesICD = () => {
     setDesICDs((prev) => [...prev, desICD]);
     setDesICD({
       des: "",
       code: "",
     });
+    setSelectedICDDiagnosis(null);
   };
   const handleDeleteDesICD = (index) => {
     const updatedDesICDs = [...desICDs];
@@ -204,14 +208,18 @@ function MedicalForm() {
     updatedDesICDs.splice(index, 1);
     setProcedures(updatedDesICDs);
   };
+  const [selectedICDDiagnosis, setSelectedICDDiagnosis] = useState(null);
   const handleICDSelect = (event, value) => {
+    setSelectedICDDiagnosis(value);
     if (value) {
       setDesICD({ code: value.ICDCode, des: value.ICD_Name });
     } else {
       setDesICD({ code: "", des: "" });
     }
   };
+
   const handleMedicationSelect = (event, value) => {
+    setSelectedMedication(value);
     if (value) {
       setMedication({
         TMTCode: value.TMTCode,
@@ -223,6 +231,7 @@ function MedicalForm() {
     }
   };
   const handleDOseSelect = (event, value) => {
+    setSelectedDOse(value);
     if (value) {
       setDoseCodes1({
         DoseCode: value.Code,
@@ -276,8 +285,9 @@ function MedicalForm() {
     };
     fetchICDOperation();
   }, [procedure.code]);
-
+  const [selectedICDOperation, setSelectedICDOperation] = useState(null);
   const handleICDOperationSelect = (event, value) => {
+    setSelectedICDOperation(value);
     if (value) {
       setProcedure({ code: value.ICDCmCode1, des: value.ICD_Name });
     } else {
@@ -291,6 +301,9 @@ function MedicalForm() {
       code: "",
       des: "",
     });
+    setSelectedICDOperation(null);
+    setICDOperation("");
+    setICDOperation(null);
     setICDOperation([]);
   };
   const fetchPatient = async () => {
@@ -832,6 +845,7 @@ function MedicalForm() {
                     getOptionLabel={(option) =>
                       `${option.TMTCode} ${option.ItemName}${option.StockCode}`
                     }
+                    value={selectedMedication}
                     onChange={handleMedicationSelect}
                     renderInput={(params) => (
                       <TextField
@@ -873,6 +887,7 @@ function MedicalForm() {
                     getOptionLabel={(option) =>
                       `${option.Code} ${option.ThItemName}`
                     }
+                    value={selectedDOse}
                     onChange={handleDOseSelect}
                     renderInput={(params) => (
                       <TextField
@@ -1013,6 +1028,7 @@ function MedicalForm() {
                   getOptionLabel={(option) =>
                     `${option.ICDCode}: ${option.ICD_Name}`
                   }
+                  value={selectedICDDiagnosis}
                   onChange={handleICDSelect}
                   renderInput={(params) => (
                     <TextField
@@ -1115,6 +1131,7 @@ function MedicalForm() {
                     getOptionLabel={(option) =>
                       `${option.ICDCmCode1}: ${option.ICD_Name}`
                     }
+                    value={selectedICDOperation}
                     onChange={handleICDOperationSelect}
                     renderInput={(params) => (
                       <TextField

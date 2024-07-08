@@ -11,12 +11,18 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemIcon,
   IconButton,
-  Box,
+  Collapse,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import MedicalForm from "./pages/MedicalForm";
 import ExportForm from "./pages/ExportForm";
+import HealingIcon from "@mui/icons-material/Healing";
+import GetAppIcon from "@mui/icons-material/GetApp";
+import logo from "./images/logo2.png";
 
 const App = () => {
   return (
@@ -27,76 +33,73 @@ const App = () => {
 };
 
 const Main = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  const toggleDrawer = (open) => (event) => {
-    if (
-      event.type === "keydown" &&
-      (event.key === "Tab" || event.key === "Shift")
-    ) {
-      return;
-    }
-    setIsDrawerOpen(open);
+  const handleDrawerToggle = () => {
+    setOpen(!open);
   };
 
-  const menuItems = [
-    { text: "แบบแจ้งค่ารักษาผู้ป่วยนอก", path: "/" },
-    { text: "ส่งออกข้อมูล", path: "/exportform" },
-  ];
-
   return (
-    <div>
-      <IconButton onClick={toggleDrawer(true)}>
-        <MenuIcon />
-      </IconButton>
-      <Drawer
-        anchor="left"
-        open={isDrawerOpen}
-        onClose={toggleDrawer(false)}
-        sx={{
-          "& .MuiDrawer-paper": {
-            width: 240,
-            backgroundColor: "#f5f5f5",
-          },
-        }}
-      >
-        <Box
-          role="presentation"
-          onClick={toggleDrawer(false)}
-          onKeyDown={toggleDrawer(false)}
-          sx={{ width: 240 }}
-        >
-          <List>
-            {menuItems.map((item, index) => (
-              <ListItem
-                button
-                key={item.text}
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                sx={{
-                  "&.Mui-selected": {
-                    backgroundColor: "#1976d2",
-                    color: "#ffffff",
-                  },
-                  "&.Mui-selected:hover": {
-                    backgroundColor: "#1565c0",
-                  },
-                }}
-              >
-                <ListItemText primary={item.text} />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
+    <>
+      <div id="wrapper">
+        <nav className="navbar-default navbar-static-side" role="navigation">
+          <div className="sidebar-collapse">
+            <ul className="nav metismenu" id="side-menu">
+              <li className="nav-header">
+                <div
+                  className="dropdown profile-element text-center"
+                  style={{ marginLeft: "0px", color: "#ffffff" }}
+                >
+                  <img alt="image" className="rounded-circle" src={logo} />
+                  <span className="block m-t-xs font-bold ">KSBR</span>
+                </div>
 
-      <Routes>
-        <Route path="/" element={<MedicalForm />} />
-        <Route path="/exportform" element={<ExportForm />} />
-      </Routes>
-    </div>
+                <div className="logo-element">KSBR</div>
+              </li>
+              <li>
+                <a href="index.html">
+                  <i className="fa fa-th-large"></i>{" "}
+                  <span className="nav-label">ออกปฏิบัติงาน</span>
+                  <span className="fa arrow"></span>
+                </a>
+                <ul className="nav nav-second-level collapse">
+                  <li className={location.pathname === "/" ? "active" : ""}>
+                    <Link to="/">แบบแจ้งค่ารักษาพยาบาลผู้ป่วยนอก</Link>
+                  </li>
+                  <li
+                    className={
+                      location.pathname === "/exportform" ? "active" : ""
+                    }
+                  >
+                    <Link to="/exportform">Export</Link>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div id="page-wrapper" className="gray-bg">
+          <div className="row border-bottom">
+            <nav
+              className="navbar navbar-static-top"
+              role="navigation"
+              style={{ marginBottom: 0, color: "#808080" }}
+            >
+              <div className="navbar-header">
+                <IconButton className="navbar-minimalize minimalize-styl-2 btn btn-primary">
+                  <MenuIcon />
+                </IconButton>
+              </div>
+            </nav>
+          </div>
+          <Routes>
+            <Route path="/" element={<MedicalForm />} />
+            <Route path="/exportform" element={<ExportForm />} />
+          </Routes>
+        </div>
+      </div>
+    </>
   );
 };
 
