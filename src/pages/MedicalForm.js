@@ -57,7 +57,7 @@ function MedicalForm() {
     unitPrice: "",
     totalPrice: "",
   });
-  console.log(medication);
+  console.log(invNo, "invNo");
   const [doseCodes1, setDoseCodes1] = useState({
     DoseCode: "",
     ThItemName: "",
@@ -328,73 +328,6 @@ function MedicalForm() {
     }
   };
   useEffect(() => {
-    const fetchInvoiceData = async () => {
-      try {
-        const response = await fetch(BASE_URL + "/api/InvNo");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-
-        // Assuming the invoice number structure is like "A026700002"
-        if (data?.length > 0) {
-          const latestInvoiceNumber = data[0].InvNo;
-          const numericPart = parseInt(latestInvoiceNumber.substring(6), 10);
-          const incrementedNumericPart = numericPart + 1;
-          const newInvoiceNumber = `${latestInvoiceNumber.substring(
-            0,
-            6
-          )}${incrementedNumericPart.toString().padStart(4, "0")}`;
-          setInvNo(newInvoiceNumber);
-        }
-        setInvoiceData(data);
-      } catch (error) {
-        console.error("Error fetching invoice data:", error);
-      }
-    };
-
-    fetchInvoiceData();
-  }, []); // Empty dependency array to run only once on mount
-
-  // console.log(invoiceData?.[0]?.InvNo);
-  const [values, setValues] = useState({
-    serviceFee: 0,
-    personnelFee1: 0,
-  });
-
-  const handleChangeTotal = (e) => {
-    setValues({
-      ...values,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const [info, setInfo] = useState("");
-  const calculateTotalAdditionalFees = () => {
-    const { serviceFee, personnelFee1 } = values;
-
-    return parseFloat(serviceFee) + parseFloat(personnelFee1);
-  };
-  // รวมรายการอื่นๆ
-  const calculateTotal = () => {
-    return Object.values(values).reduce(
-      (acc, value) => acc + parseFloat(value || 0),
-      0
-    );
-  };
-  const calculatedTotalPrice =
-    medication.quantity && medication.unitPrice
-      ? parseFloat(medication.quantity) * parseFloat(medication.unitPrice)
-      : 0;
-
-  // รวมค่ารายการยาและเวชภัณฑ์
-  const calculateMedicationsTotal = () => {
-    return medications.reduce((total, med) => {
-      return total + parseFloat(med.quantity) * parseFloat(med.unitPrice);
-    }, 0);
-  };
-  const totalAll = calculateTotal() + calculateMedicationsTotal();
-  useEffect(() => {
     if (clinic === "41749") {
       setStation("A01");
       setDoctor({
@@ -445,6 +378,80 @@ function MedicalForm() {
       });
     }
   }, [clinic]);
+  useEffect(() => {
+    const fetchInvoiceData = async () => {
+      try {
+        const response = await fetch(
+          `${BASE_URL}/api/InvNo?station=${station}`
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        const currentYear = new Date().getFullYear();
+        const buddhistYear = currentYear + 543;
+        const yearPart = buddhistYear.toString().substring(2);
+
+        if (data?.length > 0 && data[0].InvNo) {
+          const latestInvoiceNumber = data[0].InvNo;
+          const numericPart = parseInt(latestInvoiceNumber.substring(6), 10);
+          const incrementedNumericPart = numericPart + 1;
+          const newInvoiceNumber = `${station}${yearPart}${incrementedNumericPart
+            .toString()
+            .padStart(5, "0")}`;
+          setInvNo(newInvoiceNumber);
+        } else {
+          setInvNo(`${station}${yearPart}00001`);
+        }
+        setInvoiceData(data);
+      } catch (error) {
+        console.error("Error fetching invoice data:", error);
+      }
+    };
+
+    if (station) {
+      fetchInvoiceData();
+    }
+  }, [station]);
+  // console.log(invoiceData?.[0]?.InvNo);
+  const [values, setValues] = useState({
+    serviceFee: 0,
+    personnelFee1: 0,
+  });
+
+  const handleChangeTotal = (e) => {
+    setValues({
+      ...values,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const [info, setInfo] = useState("");
+  const calculateTotalAdditionalFees = () => {
+    const { serviceFee, personnelFee1 } = values;
+
+    return parseFloat(serviceFee) + parseFloat(personnelFee1);
+  };
+  // รวมรายการอื่นๆ
+  const calculateTotal = () => {
+    return Object.values(values).reduce(
+      (acc, value) => acc + parseFloat(value || 0),
+      0
+    );
+  };
+  const calculatedTotalPrice =
+    medication.quantity && medication.unitPrice
+      ? parseFloat(medication.quantity) * parseFloat(medication.unitPrice)
+      : 0;
+
+  // รวมค่ารายการยาและเวชภัณฑ์
+  const calculateMedicationsTotal = () => {
+    return medications.reduce((total, med) => {
+      return total + parseFloat(med.quantity) * parseFloat(med.unitPrice);
+    }, 0);
+  };
+  const totalAll = calculateTotal() + calculateMedicationsTotal();
+
   const handleSend = async () => {
     try {
       if (clinic === "") {
@@ -598,6 +605,7 @@ function MedicalForm() {
               label="เลขที่สำคัญการเรียกเก็บค่ารักษา"
               variant="standard"
               value={invNo}
+              disabled
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -605,7 +613,7 @@ function MedicalForm() {
               fullWidth
               label="วัน-เวลาที่รับบริการ"
               variant="standard"
-              type="date"
+              type="datetime-local"
               InputLabelProps={{ shrink: true }}
               onChange={(e) => setServ_date(e.target.value)}
             />

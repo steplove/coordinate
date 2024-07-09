@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { create } from "xmlbuilder2";
 
 function ExportForm() {
   const [site, setSite] = useState("");
@@ -23,12 +24,41 @@ function ExportForm() {
   const [billNumber, setBillNumber] = useState("");
 
   const handleExport = () => {
-    // Add your export logic here
+    const xml = create({ version: "1.0", encoding: "UTF-8" })
+      .ele("ExportData")
+      .ele("Site")
+      .txt(site)
+      .up()
+      .ele("StartDate")
+      .txt(startDate)
+      .up()
+      .ele("EndDate")
+      .txt(endDate)
+      .up()
+      .ele("Status")
+      .txt(status)
+      .up()
+      .ele("HN")
+      .txt(hn)
+      .up()
+      .ele("BillNumber")
+      .txt(billNumber)
+      .up()
+      .end({ prettyPrint: true });
+
+    const blob = new Blob([xml], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "exported_data.xml");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
     Swal.fire("Exported", "Your data has been exported", "success");
   };
 
   const handleExit = () => {
-    // Add your exit logic here
     Swal.fire("Exit", "Program will close", "warning");
   };
 
