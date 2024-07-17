@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -6,22 +6,10 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  IconButton,
-  Collapse,
-} from "@mui/material";
+import { IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
 import MedicalForm from "./pages/MedicalForm";
 import ExportForm from "./pages/ExportForm";
-import HealingIcon from "@mui/icons-material/Healing";
-import GetAppIcon from "@mui/icons-material/GetApp";
 import logo from "./images/logo2.png";
 
 const App = () => {
@@ -33,12 +21,12 @@ const App = () => {
 };
 
 const Main = () => {
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  const handleDrawerToggle = () => {
-    setOpen(!open);
-  };
+  // const handleDrawerToggle = () => {
+  //   setOpen(!open);
+  // };
 
   return (
     <>
@@ -51,7 +39,9 @@ const Main = () => {
                   className="dropdown profile-element text-center"
                   style={{ marginLeft: "0px", color: "#ffffff" }}
                 >
-                  <img alt="image" className="rounded-circle" src={logo} />
+                  <div className="rounded-circle">
+                    <img src={logo} alt="image" />
+                  </div>
                   <span className="block m-t-xs font-bold ">KSBR</span>
                 </div>
 

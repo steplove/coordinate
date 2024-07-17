@@ -43,7 +43,7 @@ function MedicalForm() {
     DoctorName: "",
   });
   // const [billNumber, setBillNumber] = useState(1);
-  const [invoiceData, setInvoiceData] = useState("");
+  // const [invoiceData, setInvoiceData] = useState("");
   const [invNo, setInvNo] = useState("");
   const [serv_date, setServ_date] = useState("");
   const [medications, setMedications] = useState([]);
@@ -57,7 +57,6 @@ function MedicalForm() {
     unitPrice: "",
     totalPrice: "",
   });
-  console.log(invNo, "invNo");
   const [doseCodes1, setDoseCodes1] = useState({
     DoseCode: "",
     ThItemName: "",
@@ -73,7 +72,6 @@ function MedicalForm() {
     des: "",
     code: "",
   });
-  console.log(procedure);
   const [icdOptions, setIcdOptions] = useState([]);
   const [icdOperation, setICDOperation] = useState([]);
   const [stockMaster, setStockMaster] = useState([]);
@@ -225,9 +223,15 @@ function MedicalForm() {
         TMTCode: value.TMTCode,
         ItemName: value.ItemName,
         ItemCode: value.StockCode,
+        StockComposeCategory: value.StockComposeCategory,
       });
     } else {
-      setMedication({ TMTCode: "", ItemName: "", ItemCode: "" });
+      setMedication({
+        TMTCode: "",
+        ItemName: "",
+        ItemCode: "",
+        StockComposeCategory: "",
+      });
     }
   };
   const handleDOseSelect = (event, value) => {
@@ -403,7 +407,7 @@ function MedicalForm() {
         } else {
           setInvNo(`${station}${yearPart}00001`);
         }
-        setInvoiceData(data);
+        // setInvoiceData(data);
       } catch (error) {
         console.error("Error fetching invoice data:", error);
       }
@@ -427,11 +431,11 @@ function MedicalForm() {
   };
 
   const [info, setInfo] = useState("");
-  const calculateTotalAdditionalFees = () => {
-    const { serviceFee, personnelFee1 } = values;
+  // const calculateTotalAdditionalFees = () => {
+  //   const { serviceFee, personnelFee1 } = values;
 
-    return parseFloat(serviceFee) + parseFloat(personnelFee1);
-  };
+  //   return parseFloat(serviceFee) + parseFloat(personnelFee1);
+  // };
   // รวมรายการอื่นๆ
   const calculateTotal = () => {
     return Object.values(values).reduce(
@@ -494,15 +498,36 @@ function MedicalForm() {
           DoctorName: doctor.DoctorName,
           EntryByUser: info,
         };
-
-        // สร้างข้อมูล medications ที่ต้องการส่ง
+        // Prepare medicationsData
         const medicationsData = medications.map((med, index) => ({
           ...med,
           Suffix: index + 1,
           Sv_date: serv_date,
           InvNo: invNo,
         }));
-        console.log(medicationsData, "medicationsData", info);
+
+        // Add service fee to medicationsData if applicable
+        if (values.serviceFee > 0) {
+          medicationsData.push({
+            ItemName: "ค่าบริการทางการแพทย์",
+            ItemCode: values.serviceFee,
+            Suffix: medicationsData.length + 1,
+            Sv_date: serv_date,
+            InvNo: invNo,
+          });
+        }
+
+        // Add personnel fee to medicationsData if applicable
+        if (values.personnelFee1 > 0) {
+          medicationsData.push({
+            ItemName: "ค่าธรรมเนียมบุคลาการทางการแพทย์",
+            ItemCode: values.personnelFee1,
+            Suffix: medicationsData.length + 1,
+            Sv_date: serv_date,
+            InvNo: invNo,
+          });
+        }
+        // console.log(medicationsData, "medicationsData", info);
         const response = await axios.post(BASE_URL + "/api/billTrans", data);
         // ส่งข้อมูล medications ไปยัง API ของ Medications
         const responseMedications = await axios.post(
@@ -518,10 +543,15 @@ function MedicalForm() {
           responseMedications.status === 200 &&
           responseDiagnosisProcedure.status === 200
         ) {
-          // setInvNo("");
+          setInvNo("");
           setPatientData(null);
           setIdCardNumber("");
-          setServ_date(null);
+          setServ_date("");
+          setDesICDs([]);
+          setMedications([]);
+          setProcedures([]);
+          setClinic("");
+          setInfo("");
           Swal.fire({
             title: "ส่งข้อมูลสำเร็จ",
             icon: "success",
@@ -615,6 +645,8 @@ function MedicalForm() {
               variant="standard"
               type="datetime-local"
               InputLabelProps={{ shrink: true }}
+              value={serv_date}
+              key={serv_date}
               onChange={(e) => setServ_date(e.target.value)}
             />
           </Grid>
@@ -851,7 +883,7 @@ function MedicalForm() {
                   <Autocomplete
                     options={stockMaster}
                     getOptionLabel={(option) =>
-                      `${option.TMTCode} ${option.ItemName}${option.StockCode}`
+                      `${option.TMTCode} ${option.ItemName}${option.StockCode}${option.StockComposeCategory}`
                     }
                     value={selectedMedication}
                     onChange={handleMedicationSelect}
@@ -1005,16 +1037,6 @@ function MedicalForm() {
                             ไม่มีข้อมูล
                           </TableCell>
                         </TableRow>
-                        <TableRow>
-                          <TableCell colSpan={8} align="center">
-                            ไม่มีข้อมูล
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell colSpan={8} align="center">
-                            ไม่มีข้อมูล
-                          </TableCell>
-                        </TableRow>
                       </>
                     )}
                   </TableBody>
@@ -1108,16 +1130,6 @@ function MedicalForm() {
                           ไม่มีข้อมูล
                         </TableCell>
                       </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={4} align="center">
-                          ไม่มีข้อมูล
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={4} align="center">
-                          ไม่มีข้อมูล
-                        </TableCell>
-                      </TableRow>
                     </>
                   )}
                 </TableBody>
@@ -1206,16 +1218,6 @@ function MedicalForm() {
                       ))
                     ) : (
                       <>
-                        <TableRow>
-                          <TableCell colSpan={4} align="center">
-                            ไม่มีข้อมูล
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell colSpan={4} align="center">
-                            ไม่มีข้อมูล
-                          </TableCell>
-                        </TableRow>
                         <TableRow>
                           <TableCell colSpan={4} align="center">
                             ไม่มีข้อมูล
