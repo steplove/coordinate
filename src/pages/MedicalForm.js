@@ -46,6 +46,7 @@ function MedicalForm() {
   // const [invoiceData, setInvoiceData] = useState("");
   const [invNo, setInvNo] = useState("");
   const [serv_date, setServ_date] = useState("");
+  console.log(serv_date);
   const [medications, setMedications] = useState([]);
   const [medication, setMedication] = useState({
     ItemName: "",
