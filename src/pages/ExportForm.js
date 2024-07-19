@@ -13,6 +13,7 @@ import {
 import Swal from "sweetalert2";
 import axios from "axios";
 import { BASE_URL } from "../constants/constants";
+import CryptoJS from "crypto-js";
 
 function ExportForm() {
   const [startDate, setStartDate] = useState("");
@@ -72,39 +73,42 @@ function ExportForm() {
       progressContainer.style.display = "block";
       showProgress(0);
 
-      const response1 = await axios.get(BASE_URL + "/api/BillTransXML", {
-        params: {
+      const fetchData = async (endpoint, params, progressStart, progressEnd) => {
+        const response = await axios.get(BASE_URL + endpoint, {
+          params: params,
+          onDownloadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              progressStart +
+                (progressEvent.loaded * (progressEnd - progressStart)) /
+                  progressEvent.total
+            );
+            showProgress(percentCompleted);
+          },
+        });
+        await delay(500);
+        return response.data;
+      };
+
+      const data1 = await fetchData(
+        "/api/BillTransXML",
+        {
           P_FromDate: formattedStartDate,
           P_ToDate: formattedEndDate,
           P_TFlag: status,
         },
-        onDownloadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 25) / progressEvent.total
-          );
-          showProgress(percentCompleted);
-        },
-      });
+        0,
+        25
+      );
 
-      await delay(500);
-
-      const response2 = await axios.get(BASE_URL + "/api/BillItems", {
-        params: {
+      const data2 = await fetchData(
+        "/api/BillItems",
+        {
           P_FromDate: formattedStartDate,
           P_ToDate: formattedEndDate,
         },
-        onDownloadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            25 + (progressEvent.loaded * 25) / progressEvent.total
-          );
-          showProgress(percentCompleted);
-        },
-      });
-
-      await delay(500);
-
-      const data1 = response1.data;
-      const data2 = response2.data;
+        25,
+        50
+      );
 
       const now = new Date();
       const dateTimeString = new Date(
@@ -112,7 +116,12 @@ function ExportForm() {
       ).toISOString();
       const fileDateString = now.toISOString().slice(0, 10).replace(/-/g, "");
 
-      let xmlString = `<?xml version="1.0" encoding="windows-874"?>
+      const generateMD5 = (data) => {
+        return CryptoJS.MD5(data).toString(CryptoJS.enc.Hex).toUpperCase();
+      };
+
+      const generateXML1 = (data1, data2, fileName) => {
+        let xmlString = `<?xml version="1.0" encoding="windows-874"?>
 <ClaimRec System="OP" PayPlan="SS" Version="0.93">
 <Header>
 <HCODE>12026</HCODE>
@@ -123,36 +132,104 @@ function ExportForm() {
 </Header>
 <BILLTRAN>`;
 
-      data1.forEach((item) => {
-        xmlString += `
+        data1.forEach((item) => {
+          xmlString += `
 ${item.Station}||${item.Authcode}|${item.DTtran}|${item.Hcode}|${item.InvNo}||${item.HN}|${item.MemberNo}|${item.Amount}|${item.Paid}||${item.Tflag}|${item.Pid}|${item.Name}|${item.Hmain}|${item.PayPlan}|${item.ClaimAmt}|${item.OtherPayplan}|${item.OtherPay}`;
-      });
+        });
 
-      xmlString += `
+        xmlString += `
 </BILLTRAN>
 <BillItems>`;
 
-      data2.forEach((item) => {
-        xmlString += `
+        data2.forEach((item) => {
+          xmlString += `
 ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||${item.QTY}|${item.UP}|${item.ChargeAmt}|${item.ClaimUP}|${item.CliamAmount}|${item.SvRefID}|${item.ClaimCat}`;
-      });
+        });
 
-      xmlString += `
+        xmlString += `
 </BillItems>
 </ClaimRec>`;
 
-      console.log("Generated XML:", xmlString);
+        const md5Hash = generateMD5(xmlString);
+        xmlString += `\n<?EndNote HMAC="${md5Hash}"?>`;
 
-      const blob = new Blob([xmlString], { type: "application/xml" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `BILLTRAN${fileDateString}.txt`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        console.log("Generated XML:", xmlString);
 
-      await delay(500);
+        const blob = new Blob([xmlString], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      const generateXML2 = (fileName) => {
+        let xmlString = `<?xml version="1.0" encoding="windows-874"?>
+<ClaimRec System="OP" PayPlan="SS" Version="0.93">
+<Header>
+<HCODE>12026</HCODE>
+<HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์ </HNAME>
+<DATETIME>${dateTimeString}</DATETIME>
+<SESSNO>0001</SESSNO>
+<RECCOUNT>0</RECCOUNT>
+</Header>
+<OPServices>
+</OPServices>
+<OPDx>
+</OPDx>
+</ClaimRec>`;
+
+        const md5Hash = generateMD5(xmlString);
+        xmlString += `\n<?EndNote HMAC="${md5Hash}"?>`;
+
+        console.log("Generated XML:", xmlString);
+
+        const blob = new Blob([xmlString], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      const generateXML3 = (fileName) => {
+        let xmlString = `<?xml version="1.0" encoding="windows-874"?>
+<ClaimRec System="OP" PayPlan="SS" Version="0.93">
+<Header>
+<HCODE>12026</HCODE>
+<HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์ </HNAME>
+<DATETIME>${dateTimeString}</DATETIME>
+<SESSNO>0001</SESSNO>
+<RECCOUNT>0</RECCOUNT>
+</Header>
+<Dispensing>
+</Dispensing>
+<DispensedItems>
+</DispensedItems>
+</ClaimRec>`;
+
+        const md5Hash = generateMD5(xmlString);
+        xmlString += `\n<?EndNote HMAC="${md5Hash}"?>`;
+
+        console.log("Generated XML:", xmlString);
+
+        const blob = new Blob([xmlString], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      generateXML1(data1, data2, `BILLTRAN${fileDateString}.txt`);
+      generateXML2(`OPServices${fileDateString}.txt`);
+      generateXML3(`BILLDISP${fileDateString}.txt`);
 
       showProgress(100);
 
@@ -164,6 +241,7 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
       progressContainer.style.display = "none";
     }
   };
+
 
   return (
     <div>
