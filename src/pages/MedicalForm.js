@@ -225,6 +225,7 @@ function MedicalForm() {
         ItemName: value.ItemName,
         ItemCode: value.StockCode,
         StockComposeCategory: value.StockComposeCategory,
+        UnitCode: value.UnitCode,
       });
     } else {
       setMedication({
@@ -232,6 +233,7 @@ function MedicalForm() {
         ItemName: "",
         ItemCode: "",
         StockComposeCategory: "",
+        UnitCode: "",
       });
     }
   };
@@ -884,7 +886,7 @@ function MedicalForm() {
                   <Autocomplete
                     options={stockMaster}
                     getOptionLabel={(option) =>
-                      `${option.TMTCode} ${option.ItemName}${option.StockCode}${option.StockComposeCategory}`
+                      `${option.TMTCode} ${option.ItemName}${option.StockCode}${option.StockComposeCategory}${option.UnitCode}`
                     }
                     value={selectedMedication}
                     onChange={handleMedicationSelect}

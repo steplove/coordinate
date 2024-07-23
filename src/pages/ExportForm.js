@@ -73,7 +73,12 @@ function ExportForm() {
       progressContainer.style.display = "block";
       showProgress(0);
 
-      const fetchData = async (endpoint, params, progressStart, progressEnd) => {
+      const fetchData = async (
+        endpoint,
+        params,
+        progressStart,
+        progressEnd
+      ) => {
         const response = await axios.get(BASE_URL + endpoint, {
           params: params,
           onDownloadProgress: (progressEvent) => {
@@ -88,7 +93,6 @@ function ExportForm() {
         await delay(500);
         return response.data;
       };
-
       const data1 = await fetchData(
         "/api/BillTransXML",
         {
@@ -97,7 +101,7 @@ function ExportForm() {
           P_TFlag: status,
         },
         0,
-        25
+        20
       );
 
       const data2 = await fetchData(
@@ -106,8 +110,48 @@ function ExportForm() {
           P_FromDate: formattedStartDate,
           P_ToDate: formattedEndDate,
         },
-        25,
-        50
+        20,
+        40
+      );
+
+      const data3 = await fetchData(
+        "/api/Dispensing",
+        {
+          P_FromDate: formattedStartDate,
+          P_ToDate: formattedEndDate,
+        },
+        40,
+        60
+      );
+
+      const data4 = await fetchData(
+        "/api/DispensedItems",
+        {
+          P_FromDate: formattedStartDate,
+          P_ToDate: formattedEndDate,
+        },
+        60,
+        80
+      );
+
+      const data5 = await fetchData(
+        "/api/OPServices",
+        {
+          P_FromDate: formattedStartDate,
+          P_ToDate: formattedEndDate,
+        },
+        80,
+        90
+      );
+
+      const data6 = await fetchData(
+        "/api/OPDx",
+        {
+          P_FromDate: formattedStartDate,
+          P_ToDate: formattedEndDate,
+        },
+        90,
+        100
       );
 
       const now = new Date();
@@ -127,7 +171,7 @@ function ExportForm() {
 <HCODE>12026</HCODE>
 <HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์</HNAME>
 <DATETIME>${dateTimeString}</DATETIME>
-<SESSNO>0001</SESSNO>
+<SESSNO>0004</SESSNO>
 <RECCOUNT>${data1.length + data2.length}</RECCOUNT>
 </Header>
 <BILLTRAN>`;
@@ -165,19 +209,33 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
         document.body.removeChild(link);
       };
 
-      const generateXML2 = (fileName) => {
+      const generateXML2 = (data5, data6, fileName) => {
         let xmlString = `<?xml version="1.0" encoding="windows-874"?>
 <ClaimRec System="OP" PayPlan="SS" Version="0.93">
 <Header>
 <HCODE>12026</HCODE>
 <HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์ </HNAME>
 <DATETIME>${dateTimeString}</DATETIME>
-<SESSNO>0001</SESSNO>
-<RECCOUNT>0</RECCOUNT>
+<SESSNO>0004</SESSNO>
+<RECCOUNT>${data5.length + data6.length}</RECCOUNT>
 </Header>
-<OPServices>
+<OPServices>`;
+
+        data5.forEach((item) => {
+          xmlString += `
+${item.InvNo}|${item.SvID}|${item.Class}|${item.Hcode}|${item.HN}|${item.Pid}|${item.CareAccount}|${item.TypeServ}|${item.TypeIn}|${item.TypeOut}|${item.DTAppoint}|${item.SvPID}|${item.Clinic}|${item.BegDT}|${item.EndDT}|${item.LCCode}|${item.CodeSet}|${item.STDCode}|${item.SvCharge}|${item.Completion}|${item.SvTxCode}|${item.ClaimCat}`;
+        });
+
+        xmlString += `
 </OPServices>
-<OPDx>
+<OPDx>`;
+
+        data6.forEach((item) => {
+          xmlString += `
+${item.Class}|${item.SvID}|${item.SL}|${item.CodeSet}|${item.Code}|${item.Desc}`;
+        });
+
+        xmlString += `
 </OPDx>
 </ClaimRec>`;
 
@@ -196,19 +254,33 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
         document.body.removeChild(link);
       };
 
-      const generateXML3 = (fileName) => {
+      const generateXML3 = (data3, data4, fileName) => {
         let xmlString = `<?xml version="1.0" encoding="windows-874"?>
 <ClaimRec System="OP" PayPlan="SS" Version="0.93">
 <Header>
 <HCODE>12026</HCODE>
 <HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์ </HNAME>
 <DATETIME>${dateTimeString}</DATETIME>
-<SESSNO>0001</SESSNO>
-<RECCOUNT>0</RECCOUNT>
+<SESSNO>0004</SESSNO>
+<RECCOUNT>${data3.length + data4.length}</RECCOUNT>
 </Header>
-<Dispensing>
+<Dispensing>`;
+
+        data3.forEach((item) => {
+          xmlString += `
+${item.ProviderID}|${item.Dispid}|${item.InvNo}|${item.HN}|${item.PID}|${item.Prescdt}|${item.Dispdt}|${item.Prescb}|${item.Itemcnt}|${item.ChargeAmt}|${item.ClaimAmt}|${item.Paid}|${item.OtherPay}|${item.Reimburser}|${item.BenefitPlan}|${item.DispeStat}|${item.SvID}|${item.DayCover}`;
+        });
+
+        xmlString += `
 </Dispensing>
-<DispensedItems>
+<DispensedItems>`;
+
+        data4.forEach((item) => {
+          xmlString += `
+${item.Dispid}|${item.PrdCat}|${item.Hospdrgid}|${item.DrgID}|${item.dfsCode}|${item.dfsText}|${item.Packsize}|${item.sigCode}|${item.sigText}|${item.Quantity}|${item.UnitPrice}|${item.ChargeAmt}|${item.ReimbPrice}|${item.ReimbAmt}|${item.PrdSeCode}|${item.Claimcont}|${item.ClaimCat}|${item.MultiDisp}|${item.SupplyFor}`;
+        });
+
+        xmlString += `
 </DispensedItems>
 </ClaimRec>`;
 
@@ -228,8 +300,8 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
       };
 
       generateXML1(data1, data2, `BILLTRAN${fileDateString}.txt`);
-      generateXML2(`OPServices${fileDateString}.txt`);
-      generateXML3(`BILLDISP${fileDateString}.txt`);
+      generateXML2(data5, data6,`OPServices${fileDateString}.txt`);
+      generateXML3(data3, data4, `BILLDISP${fileDateString}.txt`);
 
       showProgress(100);
 
@@ -241,7 +313,6 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
       progressContainer.style.display = "none";
     }
   };
-
 
   return (
     <div>
@@ -257,7 +328,7 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
           <Typography variant="h4" color="primary" gutterBottom>
             SSO Export KSBR
           </Typography>
-          <FormControl fullWidth>
+          {/* <FormControl fullWidth>
             <InputLabel id="select-clinic-label">เลือกคลินิก</InputLabel>
             <Select
               labelId="select-clinic-label"
@@ -275,7 +346,7 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
                 คลินิกเวชกรรมแพทย์กนกรัตน์ (43850)
               </MenuItem>
             </Select>
-          </FormControl>
+          </FormControl> */}
           <TextField
             fullWidth
             label="ตั้งแต่วันที่"
