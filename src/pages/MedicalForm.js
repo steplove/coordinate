@@ -555,6 +555,10 @@ function MedicalForm() {
           setProcedures([]);
           setClinic("");
           setInfo("");
+          setValues({
+            serviceFee: 0,
+            personnelFee1: 0,
+          });
           Swal.fire({
             title: "ส่งข้อมูลสำเร็จ",
             icon: "success",
@@ -1303,6 +1307,7 @@ function MedicalForm() {
               label="ผู้บันทึกข้อมูล"
               variant="outlined"
               name="recorder"
+               value={info}
               onChange={(e) => setInfo(e.target.value)}
             />
           </Grid>
