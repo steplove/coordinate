@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BASE_URL } from "../constants/constants";
+import { BASE_URL, token } from "../constants/constants";
 import {
   Grid,
   TextField,
@@ -81,10 +81,15 @@ function MedicalForm() {
   const [patientData, setPatientData] = useState(null);
   useEffect(() => {
     const fetchMedicationOperation = async () => {
-      if (medication && medication.TMTCode && medication.TMTCode.length > 1) {
+      if (medication && medication.TMTCode && medication.TMTCode.length >= 1) {
         try {
           const response = await fetch(
-            `${BASE_URL}/api/medication/search?query=${medication.TMTCode}`
+            `${BASE_URL}/api/medication/search?query=${medication.TMTCode}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           const data = await response.json();
           setStockMaster(data);
@@ -102,7 +107,12 @@ function MedicalForm() {
       if (medication && medication.DoseCode && medication.DoseCode.length > 0) {
         try {
           const response = await fetch(
-            `${BASE_URL}/api/dose/search?query=${medication.DoseCode}`
+            `${BASE_URL}/api/dose/search?query=${medication.DoseCode}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           const data = await response.json();
           setDoseCodes(data);
@@ -171,7 +181,12 @@ function MedicalForm() {
       if (desICD.code.length > 1) {
         try {
           const response = await fetch(
-            `${BASE_URL}/api/ICD/search?query=${desICD.code}`
+            `${BASE_URL}/api/ICD/search?query=${desICD.code}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           const data = await response.json();
           setIcdOptions(data);
@@ -281,7 +296,12 @@ function MedicalForm() {
       if (procedure.code.length > 0) {
         try {
           const response = await fetch(
-            `${BASE_URL}/api/ICDOperation/search?query=${procedure.code}`
+            `${BASE_URL}/api/ICDOperation/search?query=${procedure.code}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           const data = await response.json();
           setICDOperation(data);
@@ -315,25 +335,56 @@ function MedicalForm() {
   };
   const fetchPatient = async () => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/api/Patient/search?idCardNumber=${idCardNumber}`
-      );
-      const data = await response.json();
-
-      if (Array.isArray(data) && data.length > 0) {
-        setPatientData(data);
-        if (!data[0].HN) {
-          Swal.fire("กรุณาลงทะเบียนคนไข้ในระบบ SSB");
-        }
+      if (!clinic) {
+        handleOpen();
       } else {
-        setPatientData([]);
-        Swal.fire("กรุณาลงทะเบียนคนไข้ในระบบ SSB");
+        setTimeout(() => {
+          Swal.fire({
+            title: 'กำลังค้นหาข้อมูล',
+            text: `ค้นหาข้อมูลจากเลขบัตรประชาชน ${idCardNumber}`,
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+          });
+        }, 100);
+  
+        await new Promise(resolve => setTimeout(resolve, 2000));
+  
+        const response = await fetch(
+          `${BASE_URL}/api/Patient/search?idCardNumber=${idCardNumber}&station=${station}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        console.log(data[0].HN, "data");
+  
+        Swal.close();
+  
+        if (Array.isArray(data) && data.length > 0) {
+          setPatientData(data);
+          if (!data[0].HN) {
+            Swal.fire("กรุณาลงทะเบียนคนไข้ในระบบ ลงทะเบียนผู้ป่วย");
+          }
+        } else {
+          setPatientData([]);
+          Swal.fire("กรุณาลงทะเบียนคนไข้ในระบบ ลงทะเบียนผู้ป่วย");
+        }
       }
     } catch (error) {
       console.error("Error fetching patient data:", error);
-      Swal.fire("เกิดข้อผิดพลาดในการค้นหาข้อมูลคนไข้");
+  
+      // Close loading alert
+      Swal.close();
+  
+      Swal.fire("กรุณาลงทะเบียนคนไข้ในระบบ ลงทะเบียนผู้ป่วย");
     }
   };
+  
+
   useEffect(() => {
     if (clinic === "41749") {
       setStation("A01");
@@ -389,7 +440,12 @@ function MedicalForm() {
     const fetchInvoiceData = async () => {
       try {
         const response = await fetch(
-          `${BASE_URL}/api/InvNo?station=${station}`
+          `${BASE_URL}/api/InvNo?station=${station}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -530,16 +586,25 @@ function MedicalForm() {
             InvNo: invNo,
           });
         }
-        // console.log(medicationsData, "medicationsData", info);
-        const response = await axios.post(BASE_URL + "/api/billTrans", data);
-        // ส่งข้อมูล medications ไปยัง API ของ Medications
+
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        const response = await axios.post(`${BASE_URL}/api/billTrans`, data, {
+          headers,
+        });
+
         const responseMedications = await axios.post(
-          BASE_URL + "/api/medications",
-          { medications: medicationsData }
+          `${BASE_URL}/api/medications`,
+          { medications: medicationsData },
+          { headers }
         );
+
         const responseDiagnosisProcedure = await axios.post(
-          BASE_URL + "/api/diagnosis",
-          { diagnosis: diagnosisData }
+          `${BASE_URL}/api/diagnosis`,
+          { diagnosis: diagnosisData },
+          { headers }
         );
         if (
           response.status === 200 &&
@@ -678,7 +743,7 @@ function MedicalForm() {
                     fullWidth
                     label="ข้อมูลผู้ป่วย"
                     variant="outlined"
-                    value={patientData[0].Th_Name || patientData[0].En_Name}
+                    value={patientData[0].FirstName}
                     InputProps={{
                       readOnly: true,
                     }}
@@ -1307,7 +1372,7 @@ function MedicalForm() {
               label="ผู้บันทึกข้อมูล"
               variant="outlined"
               name="recorder"
-               value={info}
+              value={info}
               onChange={(e) => setInfo(e.target.value)}
             />
           </Grid>

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { BASE_URL } from "../constants/constants";
+import { BASE_URL, token } from "../constants/constants";
 import CryptoJS from "crypto-js";
 
 function ExportForm() {
@@ -53,22 +53,16 @@ function ExportForm() {
     };
 
     try {
-      const formatDateTime = (date) => {
+      const formatDate = (date) => {
         const d = new Date(date);
         return `${d.getFullYear()}-${(d.getMonth() + 1)
           .toString()
-          .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}T${d
-          .getHours()
-          .toString()
-          .padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d
-          .getSeconds()
-          .toString()
-          .padStart(2, "0")}.000Z`;
+          .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
       };
 
-      const formattedStartDate = formatDateTime(startDate);
-      const formattedEndDate = formatDateTime(endDate);
-
+      const formattedStartDate = formatDate(startDate);
+      const formattedEndDate = formatDate(endDate);
+      console.log(formattedStartDate, "วัน", formattedEndDate);
       const progressContainer = document.getElementById("progress-container");
       progressContainer.style.display = "block";
       showProgress(0);
@@ -81,6 +75,9 @@ function ExportForm() {
       ) => {
         const response = await axios.get(BASE_URL + endpoint, {
           params: params,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           onDownloadProgress: (progressEvent) => {
             const percentCompleted = Math.round(
               progressStart +
@@ -172,7 +169,7 @@ function ExportForm() {
 <HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์</HNAME>
 <DATETIME>${dateTimeString}</DATETIME>
 <SESSNO>0004</SESSNO>
-<RECCOUNT>${data1.length + data2.length}</RECCOUNT>
+<RECCOUNT>${data1.length}</RECCOUNT>
 </Header>
 <BILLTRAN>`;
 
@@ -217,7 +214,7 @@ ${item.InvNo}|${item.Sv_date}|${item.BillMuad}|${item.LCCode}|${item.STDCode}||$
 <HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์ </HNAME>
 <DATETIME>${dateTimeString}</DATETIME>
 <SESSNO>0004</SESSNO>
-<RECCOUNT>${data5.length + data6.length}</RECCOUNT>
+<RECCOUNT>${data5.length}</RECCOUNT>
 </Header>
 <OPServices>`;
 
@@ -262,7 +259,7 @@ ${item.Class}|${item.SvID}|${item.SL}|${item.CodeSet}|${item.Code}|${item.Desc}`
 <HNAME>โรงพยาบาล เกษมราษฎร์ศรีบุรินทร์ </HNAME>
 <DATETIME>${dateTimeString}</DATETIME>
 <SESSNO>0004</SESSNO>
-<RECCOUNT>${data3.length + data4.length}</RECCOUNT>
+<RECCOUNT>${data3.length}</RECCOUNT>
 </Header>
 <Dispensing>`;
 
@@ -300,7 +297,7 @@ ${item.Dispid}|${item.PrdCat}|${item.Hospdrgid}|${item.DrgID}|${item.dfsCode}|${
       };
 
       generateXML1(data1, data2, `BILLTRAN${fileDateString}.txt`);
-      generateXML2(data5, data6,`OPServices${fileDateString}.txt`);
+      generateXML2(data5, data6, `OPServices${fileDateString}.txt`);
       generateXML3(data3, data4, `BILLDISP${fileDateString}.txt`);
 
       showProgress(100);

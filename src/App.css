@@ -36,3 +36,10 @@
     transform: rotate(360deg);
   }
 }
+.login-background {
+  background-color: #f3f3f4;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

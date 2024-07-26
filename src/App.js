@@ -10,6 +10,7 @@ import { IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import MedicalForm from "./pages/MedicalForm";
 import ExportForm from "./pages/ExportForm";
+import PatientRegistration from "./pages/PatientRegistration";
 import logo from "./images/logo2.png";
 
 const App = () => {
@@ -66,6 +67,24 @@ const Main = () => {
                   </li>
                 </ul>
               </li>
+              <li>
+                <a href="index.html">
+                  <i className="fa fa-th-large"></i>{" "}
+                  <span className="nav-label">ลงทะเบียนผู้ป่วย</span>
+                  <span className="fa arrow"></span>
+                </a>
+                <ul className="nav nav-second-level collapse">
+                  <li
+                    className={
+                      location.pathname === "/patientRegistration"
+                        ? "active"
+                        : ""
+                    }
+                  >
+                    <Link to="/patientRegistration">ลงทะเบียนผู้ป่วย</Link>
+                  </li>
+                </ul>
+              </li>
             </ul>
           </div>
         </nav>
@@ -86,6 +105,10 @@ const Main = () => {
           <Routes>
             <Route path="/" element={<MedicalForm />} />
             <Route path="/exportform" element={<ExportForm />} />
+            <Route
+              path="/patientRegistration"
+              element={<PatientRegistration />}
+            />
           </Routes>
         </div>
       </div>
