@@ -340,7 +340,7 @@ function MedicalForm() {
       } else {
         setTimeout(() => {
           Swal.fire({
-            title: 'กำลังค้นหาข้อมูล',
+            title: "กำลังค้นหาข้อมูล",
             text: `ค้นหาข้อมูลจากเลขบัตรประชาชน ${idCardNumber}`,
             allowOutsideClick: false,
             didOpen: () => {
@@ -348,9 +348,9 @@ function MedicalForm() {
             },
           });
         }, 100);
-  
-        await new Promise(resolve => setTimeout(resolve, 2000));
-  
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         const response = await fetch(
           `${BASE_URL}/api/Patient/search?idCardNumber=${idCardNumber}&station=${station}`,
           {
@@ -361,9 +361,9 @@ function MedicalForm() {
         );
         const data = await response.json();
         console.log(data[0].HN, "data");
-  
+
         Swal.close();
-  
+
         if (Array.isArray(data) && data.length > 0) {
           setPatientData(data);
           if (!data[0].HN) {
@@ -376,14 +376,13 @@ function MedicalForm() {
       }
     } catch (error) {
       console.error("Error fetching patient data:", error);
-  
+
       // Close loading alert
       Swal.close();
-  
+
       Swal.fire("กรุณาลงทะเบียนคนไข้ในระบบ ลงทะเบียนผู้ป่วย");
     }
   };
-  
 
   useEffect(() => {
     if (clinic === "41749") {
@@ -552,7 +551,7 @@ function MedicalForm() {
           Hcode: clinic,
           HN: patientData?.[0]?.HN,
           IDCardNo: idCardNumber,
-          Name: patientData?.[0]?.Th_Name || patientData?.[0]?.En_Name,
+          Name: patientData?.[0]?.FirstName,
           Doctor_No: doctor.Doctor_No,
           DoctorName: doctor.DoctorName,
           EntryByUser: info,
@@ -719,6 +718,7 @@ function MedicalForm() {
               InputLabelProps={{ shrink: true }}
               value={serv_date}
               key={serv_date}
+              views={["day", "month", "year"]}
               onChange={(e) => setServ_date(e.target.value)}
             />
           </Grid>
