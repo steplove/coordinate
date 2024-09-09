@@ -45,7 +45,7 @@ function ExcelImport() {
       setData(formattedData);
       setFileUploaded(true);
       setSnackbarMessage(
-        "File uploaded successfully. You can now submit the data."
+        "อัปโหลดไฟล์เรียบร้อยแล้ว"
       );
       setOpenSnackbar(true);
     };
@@ -60,13 +60,13 @@ function ExcelImport() {
         data,
       });
       console.log("Response:", response);
-      setSnackbarMessage("Data submitted successfully!");
+      setSnackbarMessage("ส่งข้อมูลเรียบร้อยแล้ว!");
     } catch (error) {
       console.error(
         "Error submitting data:",
         error.response ? error.response.data : error.message
       );
-      setSnackbarMessage("Failed to submit data.");
+      setSnackbarMessage("ส่งข้อมูลไม่สำเร็จ");
     } finally {
       setLoading(false);
       setOpenSnackbar(true);

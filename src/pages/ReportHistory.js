@@ -192,6 +192,7 @@ function ReportHistory() {
           hn: item.HN,
           entryByUser: item.EntryByUser || "ไม่รู้จัก",
           status: item.Status_Bill,
+          remark: item.Remark,
         }));
         setRows(fetchedRows);
         console.log(fetchedRows);
@@ -500,7 +501,7 @@ function ReportHistory() {
       field: "status",
       headerName: "สถานะ",
       flex: 1,
-      minWidth: 120,
+      minWidth: 50,
       renderCell: (params) => {
         const statusText = params.value === "A" ? "สำเร็จ" : "ไม่สำเร็จ";
         const statusColor = params.value === "A" ? "green" : "red";
@@ -518,6 +519,8 @@ function ReportHistory() {
         );
       },
     },
+    { field: "remark", headerName: "remark", flex: 2, minWidth: 180 },
+
     {
       field: "actions",
       headerName: "เครื่องมือ",
@@ -783,19 +786,25 @@ function ReportHistory() {
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ p: 2 }}>
         <ExcelImport />
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          autoHeight
-          disableSelectionOnClick
-          components={{
-            Toolbar: () => (
-              <GridToolbarContainer>
-                <GridToolbarExport />
-              </GridToolbarContainer>
-            ),
-          }}
-        />
+        {rows.length === 0 ? (
+          <Typography variant="h6" align="center" sx={{ marginTop: 2 }}>
+            ไม่มีข้อมูล
+          </Typography>
+        ) : (
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            autoHeight
+            disableSelectionOnClick
+            components={{
+              Toolbar: () => (
+                <GridToolbarContainer>
+                  <GridToolbarExport />
+                </GridToolbarContainer>
+              ),
+            }}
+          />
+        )}
       </Paper>
 
       <Dialog
